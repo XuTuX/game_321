@@ -40,91 +40,108 @@ class ControlPanel extends StatelessWidget {
     return Column(
       children: [
         // 상태 배너: 강제칸 선택 단계 or 강제칸 경고 or 일반 턴
-        if (phase == GamePhase.selectingForcedCell)
-          _buildBanner(
-            icon: Icons.star_rounded,
-            text: '강제칸을 지정하세요',
-            color: forcedColor,
-          )
-        else if (forcedCell != null)
-          _buildBanner(
-            icon: Icons.warning_amber_rounded,
-            text: '★ 강제칸을 포함해서 놓으세요',
-            color: forcedColor,
-          )
-        else
-          // 턴 표시
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: playerColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: playerColor.withValues(alpha: 0.25), width: 1.5),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: playerColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: playerColor.withValues(alpha: 0.4),
-                        blurRadius: 6,
+        SizedBox(
+          height: 42,
+          child: Center(
+            child: phase == GamePhase.selectingForcedCell
+                ? _buildBanner(
+                    icon: Icons.star_rounded,
+                    text: '강제칸을 지정하세요',
+                    color: forcedColor,
+                  )
+                : forcedCell != null
+                    ? _buildBanner(
+                        icon: Icons.warning_amber_rounded,
+                        text: '★ 강제칸을 포함해서 놓으세요',
+                        color: forcedColor,
+                      )
+                    : AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: playerColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: playerColor.withValues(alpha: 0.25),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: playerColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: playerColor.withValues(alpha: 0.4),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$playerName의 턴',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: playerColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$playerName의 턴',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: playerColor,
-                  ),
-                ),
-              ],
-            ),
           ),
+        ),
 
-        // 블록 배치 안내 메시지
-        if (phase == GamePhase.placingBlock) ...[
-          const SizedBox(height: 14),
-          Text(
-            '보드를 드래그하여 블록(2칸 또는 3칸)을 배치하세요',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ],
+        const SizedBox(height: 10),
 
-        // 에러 메시지
-        if (errorMessage != null) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFEBEE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              errorMessage!,
-              style: const TextStyle(
-                color: Color(0xFFD32F2F),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+        // 안내와 오류는 같은 고정 영역에서 교체해 보드 위치를 유지한다.
+        SizedBox(
+          height: 34,
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: errorMessage != null
+                  ? Container(
+                      key: const ValueKey('error'),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(
+                          color: Color(0xFFD32F2F),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  : phase == GamePhase.placingBlock
+                      ? Text(
+                          '보드를 드래그하여 블록(2칸 또는 3칸)을 배치하세요',
+                          key: const ValueKey('placementGuide'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade500,
+                          ),
+                        )
+                      : const SizedBox(
+                          key: ValueKey('emptyMessage'),
+                        ),
             ),
           ),
-        ],
+        ),
       ],
     );
   }
@@ -161,5 +178,4 @@ class ControlPanel extends StatelessWidget {
       ),
     );
   }
-
 }
