@@ -1,17 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Flutter가 없으면 다운로드
-if cd flutter; then 
-  git pull 
-  cd ..
-else 
-  git clone https://github.com/flutter/flutter.git -b stable
+set -euo pipefail
+
+readonly PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly FLUTTER_DIR="${FLUTTER_DIR:-$PROJECT_DIR/.flutter-sdk}"
+
+if command -v flutter >/dev/null 2>&1; then
+  FLUTTER_BIN="$(command -v flutter)"
+else
+  if [[ ! -x "$FLUTTER_DIR/bin/flutter" ]]; then
+    git clone --depth 1 --branch stable \
+      https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+  fi
+  FLUTTER_BIN="$FLUTTER_DIR/bin/flutter"
 fi
 
-# Flutter 환경변수 등록 및 빌드
-export PATH="$PATH:`pwd`/flutter/bin"
-
-flutter doctor
-flutter config --enable-web
-flutter pub get
-flutter build web --release
+cd "$PROJECT_DIR"
+"$FLUTTER_BIN" config --enable-web
+"$FLUTTER_BIN" pub get
+"$FLUTTER_BIN" build web --release --base-href /
